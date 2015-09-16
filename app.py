@@ -11,16 +11,18 @@ app = Flask(__name__)
 
 
 def video_id(url):
-    """return string of video id from url; null if non-existent"""
+    """ return string of video id from url; null if non-existent """
     vid_id = re.search(r'\?v=(.+)', url)
     if vid_id:
         return vid_id.group(1)
 
 
-def remove_file(file_name):
-    """ remove file if exists """
-    if os.path.exists(file_name):
-        cmd = 'rm ' + file_name
+def remove_files_in_directory(directory):
+    """ remove files in directory if directory exists """
+    if os.path.exists(directory):
+        cmd = 'rm '
+        for file_name in os.listdir(directory):
+            cmd += os.path.join(directory, file_name)
         commands.getoutput(cmd)
 
 
@@ -31,17 +33,25 @@ def zip_file(file_name, zip_name):
         commands.getoutput(cmd)
 
 
+def valid_url(url):
+    """ Returns true if valid youtube video url, false otherwise """
+    if re.search(r'^http(s?)://www\.youtube\.com/watch\?v=(.+)', url):
+        return True
+    return False
+
 
 @app.route('/', methods=['GET', 'POST'])
 def hello():
-
+    error = ""
     if request.method == 'POST':
+        remove_files_in_directory('videos')  # remove any already downloaded videos
         url = request.form['url']
-        if url:
-            ydl_options = {}
+        if valid_url(url):
+            ydl_options = {'outtmpl': 'videos/%(id)s.%(ext)s'}
             with youtube_dl.YoutubeDL(ydl_options) as ydl:
                 ydl.download([url])
-            file_name = glob.glob('*' + video_id(url) + '.*')[0]  # find file in directory containing video id
+            file_name = glob.glob('videos/' + video_id(url) + '*')[0]  # find file in directory containing video id
             return send_file(file_name, as_attachment=True)
+        error = "Please enter a valid YouTube url"
 
-    return render_template('index.html')
+    return render_template('index.html', error=error)
