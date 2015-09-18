@@ -10,7 +10,6 @@ from flask import Flask, render_template, request, send_file
 app = Flask(__name__)
 
 
-
 class MyLogger(object):
 
     def __init__(self):
