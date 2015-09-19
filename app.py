@@ -13,10 +13,13 @@ app = Flask(__name__)
 
 
 class TemporaryDirectory(object):
-    """ Context manager to make temporary folder """
+    """ Context manager to make and remove temporary folder to contain downloaded video """
+
+    def __init__(self, directory):
+        self.directory = directory
 
     def __enter__(self):
-        self.name = tempfile.mkdtemp(dir='videos')
+        self.name = tempfile.mkdtemp(dir=self.directory)
         return self.name
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -24,7 +27,7 @@ class TemporaryDirectory(object):
 
 
 class MyLogger(object):
-
+    """ logger object for youtube-dl """
     def __init__(self):
         self.download_error = None
 
@@ -46,6 +49,7 @@ def video_id(url):
 
 
 def my_hook(d):
+    """ check download status for debugging """
     status = d['status']
     if status == 'finished':
         print('Done downloading, now converting ...')
@@ -66,14 +70,13 @@ def hello():
         url = request.form['url']
 
         if valid_url(url):
-            with TemporaryDirectory() as temp_dir:
+            with TemporaryDirectory('videos') as temp_dir:
                 my_logger = MyLogger()
                 ydl_options = {
                     'outtmpl': temp_dir + '/%(id)s.%(ext)s',
                     'logger': my_logger,
                     'progress_hooks': [my_hook]
                 }
-
                 try:
                     with youtube_dl.YoutubeDL(ydl_options) as ydl:
                         ydl.download([url])
