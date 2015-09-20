@@ -1,0 +1,22 @@
+
+         .center {
+            text-align:center;
+         }
+         
+
+         
+         .content {
+           margin-top:100px;
+         }
+         
+         .formelem {
+           margin:20px 0;
+         }
+         
+         #content-area {
+           background:url("http://www.ringvemedia.com/server/1_shanghai/bg.jpg");
+           width:100%;
+           height:100%;
+           background-size:cover;
+         }
+   
